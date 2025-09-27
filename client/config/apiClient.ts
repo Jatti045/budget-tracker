@@ -2,7 +2,21 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import { router } from "expo-router";
 
-const API_BASE_URL = process.env.API_BASE_URL || "http://localhost:3000/api";
+// Prefer Expo's public env var which is injected at build time by EAS/app build.
+// Fallback to legacy names for local testing and finally to a sensible default.
+const API_BASE_URL =
+  process.env.EXPO_PUBLIC_API_URL || process.env.API_URL || process.env.API_BASE_URL || "http://localhost:3000";
+
+if (!process.env.EXPO_PUBLIC_API_URL) {
+  // Log a gentle warning in development so it's obvious if builds don't have the right value.
+  // Avoid noisy logs in production builds (check NODE_ENV).
+  if (process.env.NODE_ENV !== "production") {
+    console.warn(
+      "Warning: EXPO_PUBLIC_API_URL is not set — using fallback:",
+      API_BASE_URL
+    );
+  }
+}
 
 // Configure axios defaults
 const apiClient = axios.create({
