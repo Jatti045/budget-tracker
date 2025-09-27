@@ -3,6 +3,7 @@
     "name": "client",
     "slug": "client",
     "version": "1.0.0",
+    "description": "Budgee — simple personal budget tracker",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "client",
@@ -18,8 +19,13 @@
       },
       "edgeToEdgeEnabled": true,
       "package": "com.budgee.app",
-      "versionCode": 1
+      "versionCode": 1,
+      "permissions": [
+        "INTERNET",
+        "ACCESS_NETWORK_STATE"
+      ]
     },
+    "privacy": "public",
     "web": {
       "bundler": "metro",
       "output": "static",
