@@ -1,0 +1,20 @@
+{
+  "build": {
+    "production": {
+      "env": {
+        "API_URL": "https://<YOUR_SERVER_URL>",
+        "EXPO_PUBLIC_API_URL": "https://<YOUR_SERVER_URL>"
+      },
+      "android": {
+        "buildType": "app-bundle"
+      }
+    }
+  },
+  "submit": {
+    "production": {
+      "android": {
+        "serviceAccountKeyPath": "./keys/play-service-account.json"
+      }
+    }
+  }
+}
