@@ -63,6 +63,8 @@ eas submit -p android --profile production --key ./keys/play-service-account.jso
 Security & notes
 - Do NOT commit your Play service account key or keystore to git. Add them to `.gitignore`.
 - Use `eas secret:create` to store secrets in EAS and reference them via `process.env` in builds.
+- Add `client/keys/` to your repo `.gitignore` (this repo already includes that entry at root `.gitignore`).
+- Alternatively, use `eas secret:create` to store environment secrets and avoid placing them on disk.
 
 Troubleshooting
 - If the build fails, check the build logs on the EAS dashboard and run `eas build -p android --profile production --local` for local debugging.

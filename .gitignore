@@ -29,3 +29,6 @@ Thumbs.db
 ## Environment
 **/.env
 **/.env.*
+
+# Client keys and credentials
+client/keys/
