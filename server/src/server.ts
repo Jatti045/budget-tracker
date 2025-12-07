@@ -74,9 +74,44 @@ app.use("/api/transaction", transactionRouter);
 app.use("/api/user", userRouter);
 app.use("/api/budget", budgetRouter);
 
-// Health check endpoint
-app.get("/health", (req: Request, res: Response) => {
-  res.status(200).json({ status: "ok" });
+// Health check endpoint (with database connectivity check)
+app.get("/health", async (req: Request, res: Response) => {
+  try {
+    // Check database connectivity
+    await prisma.$queryRaw`SELECT 1`;
+    res.status(200).json({ 
+      status: "ok", 
+      database: "connected",
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    logger.error("Health check failed:", error);
+    res.status(503).json({ 
+      status: "error", 
+      database: "disconnected",
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+// API health endpoint (for monitoring the API routes)
+app.get("/api/health", async (req: Request, res: Response) => {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    res.status(200).json({ 
+      status: "ok", 
+      database: "connected",
+      version: "1.0.0",
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    logger.error("API health check failed:", error);
+    res.status(503).json({ 
+      status: "error", 
+      database: "disconnected",
+      timestamp: new Date().toISOString()
+    });
+  }
 });
 
 const server = app.listen(PORT, HOST, () => {
