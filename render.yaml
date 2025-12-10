@@ -10,8 +10,8 @@ services:
     region: oregon # choose: oregon, frankfurt, singapore, ohio
     plan: free # or 'starter' for $7/month always-on
     rootDir: server
-    buildCommand: npm ci && npm run build && npx prisma db push --accept-data-loss --skip-generate
-    startCommand: npm start
+    buildCommand: npm ci && npm run build
+    startCommand: npm run deploy
     healthCheckPath: /api/health
     autoDeploy: true
     envVars:
