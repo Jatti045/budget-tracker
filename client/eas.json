@@ -2,8 +2,7 @@
   "build": {
     "production": {
       "env": {
-        "API_URL": "https://<YOUR_SERVER_URL>",
-        "EXPO_PUBLIC_API_URL": "https://<YOUR_SERVER_URL>"
+        "EXPO_PUBLIC_API_BASE_URL": "https://budgettracker-api-awb6.onrender.com/api"
       },
       "android": {
         "buildType": "app-bundle"

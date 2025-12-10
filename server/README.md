@@ -5,12 +5,14 @@ This folder contains all the files you need for production deployment.
 ## 📄 Files Overview
 
 ### Configuration Files
+
 - **`Dockerfile`** - Docker container configuration for your server
 - **`render.yaml`** - Render blueprint for automated deployment
 - **`.env.example`** - Template for environment variables (server)
 - **`.gitignore`** - Ensures secrets don't get committed
 
 ### Documentation
+
 - **`QUICK_DEPLOY.md`** ⚡ - **START HERE** - 30-minute deployment guide
 - **`DEPLOYMENT_GUIDE.md`** 📖 - Complete detailed deployment guide
 - **`DEPLOYMENT_CHECKLIST.md`** ✅ - Step-by-step checklist
@@ -20,6 +22,7 @@ This folder contains all the files you need for production deployment.
 ### 1. Choose Your Hosting Platform
 
 **Option A: Render (Recommended for beginners)**
+
 - Free tier available
 - PostgreSQL included
 - Easy setup via dashboard
@@ -27,12 +30,14 @@ This folder contains all the files you need for production deployment.
 - **Build Command**: `npm ci && npm run build && npx prisma migrate deploy`
 
 **Option B: Railway**
+
 - $5/month credit included
 - Auto-detects everything
 - Simpler than Render
 - Good for quick starts
 
 **Option C: Fly.io**
+
 - More technical
 - Better for scaling
 - Requires Docker knowledge
@@ -42,10 +47,12 @@ This folder contains all the files you need for production deployment.
 Before deploying, sign up for:
 
 1. **Cloudinary** (free) - https://cloudinary.com
+
    - For profile picture uploads
    - Get: Cloud Name, API Key, API Secret
 
 2. **Email Service** (free options available)
+
    - Gmail (with App Password) - easiest
    - OR SendGrid - https://sendgrid.com
    - OR Mailgun - https://mailgun.com
@@ -81,6 +88,7 @@ eas build --platform android --profile production
 Your server needs these environment variables. Copy them from `.env.example` to Render dashboard:
 
 ### Critical (App Won't Work Without These):
+
 ```
 DATABASE_URL=postgresql://...           # From Render PostgreSQL
 JWT_SECRET_KEY=...                      # Generate: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
@@ -90,6 +98,7 @@ TRUST_PROXY=1
 ```
 
 ### Features (App works but features disabled without these):
+
 ```
 # Profile Pictures
 CLOUDINARY_CLOUD_NAME=...
@@ -136,26 +145,31 @@ curl -X POST https://your-api.onrender.com/api/user/login \
 ## 🐛 Troubleshooting
 
 ### Build Fails
+
 - ✅ Check Root Directory is set to `server` in Render
 - ✅ Verify `package.json` exists in `server/`
 - ✅ Check Render build logs for specific errors
 
 ### Database Connection Fails
+
 - ✅ Use **Internal Database URL** (not External)
 - ✅ Ensure `TRUST_PROXY=1` is set
 - ✅ Verify database and web service in same region
 
 ### Migrations Fail
+
 - ✅ Check `prisma/migrations/` folder exists
 - ✅ Run `npx prisma migrate dev` locally first
 - ✅ Push migrations to GitHub before deploying
 
 ### Server Starts But Can't Connect
+
 - ✅ Check Render logs for errors
 - ✅ Verify all required environment variables are set
 - ✅ Test health endpoint: `/health`
 
 ### Free Tier Slow
+
 - ⚠️ Free tier sleeps after 15 minutes of inactivity
 - ⚠️ First request takes 30-60 seconds to wake up
 - 💡 Upgrade to Starter plan ($7/mo) for always-on
@@ -163,6 +177,7 @@ curl -X POST https://your-api.onrender.com/api/user/login \
 ## 💰 Pricing
 
 ### Development/Testing
+
 ```
 Render Free Tier:
 - PostgreSQL: Free (90 days)
@@ -171,6 +186,7 @@ Total: $0/month
 ```
 
 ### Production (Published App)
+
 ```
 Render Starter:
 - PostgreSQL: $7/month (persistent)
@@ -214,6 +230,7 @@ Railway:
 ---
 
 **Need Help?** Open the appropriate guide:
+
 - 🏃 Quick start: `QUICK_DEPLOY.md`
 - 📖 Detailed guide: `DEPLOYMENT_GUIDE.md`
 - ✅ Step-by-step: `DEPLOYMENT_CHECKLIST.md`

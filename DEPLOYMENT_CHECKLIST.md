@@ -14,23 +14,27 @@ Complete this checklist before deploying to production.
 ## ✅ Third-Party Services Setup
 
 ### 1. Cloudinary (Image Upload)
+
 - [ ] Create account at https://cloudinary.com
 - [ ] Get Cloud Name, API Key, API Secret
 - [ ] Test image upload locally
 
 ### 2. Email Service (Password Reset)
+
 - [ ] Set up Gmail App Password OR
 - [ ] Set up SendGrid/Mailgun account
 - [ ] Test email sending locally
-- [ ] Update EMAIL_* environment variables
+- [ ] Update EMAIL\_\* environment variables
 
 ### 3. Arcjet (Security - Optional)
+
 - [ ] Create account at https://arcjet.com
 - [ ] Get API key
 - [ ] Configure rate limiting rules
-- [ ] Update ARCJET_* environment variables
+- [ ] Update ARCJET\_\* environment variables
 
 ### 4. GitHub Repository
+
 - [ ] Code pushed to main branch
 - [ ] Repository is public or Render has access
 - [ ] `.gitignore` properly configured
@@ -38,12 +42,14 @@ Complete this checklist before deploying to production.
 ## ✅ Render Deployment
 
 ### Step 1: PostgreSQL Database
+
 - [ ] Created PostgreSQL database on Render
 - [ ] Saved Internal Database URL
 - [ ] Saved External Database URL (for local testing)
 - [ ] Database region selected
 
 ### Step 2: Web Service
+
 - [ ] Created Web Service on Render
 - [ ] Connected to GitHub repository
 - [ ] Set `server` as root directory
@@ -64,7 +70,7 @@ Complete this checklist before deploying to production.
   - [ ] ARCJET_MODE=LIVE
   - [ ] NODE_ENV=production
   - [ ] TRUST_PROXY=1
-  - [ ] ALLOWED_ORIGINS=*
+  - [ ] ALLOWED_ORIGINS=\*
 - [ ] Deployment successful (check logs)
 - [ ] Copied production API URL
 
@@ -118,11 +124,13 @@ Complete this checklist before deploying to production.
 ## 🔧 Generate Secure Keys
 
 ### JWT Secret (32+ characters)
+
 ```bash
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
 
 ### Test Commands
+
 ```bash
 # Health check
 curl https://your-api.onrender.com/api/health
@@ -141,11 +149,13 @@ curl -X POST https://your-api.onrender.com/api/users/login \
 ## 📊 Cost Summary
 
 ### Free Tier (Good for initial launch)
+
 - Render PostgreSQL Free: $0 (90 days then data deleted)
 - Render Web Service Free: $0 (spins down after 15min inactivity)
 - **Total: $0/month**
 
 ### Production Tier (Recommended for published app)
+
 - Render PostgreSQL Starter: $7/month
 - Render Web Service Starter: $7/month
 - **Total: $14/month**
@@ -153,6 +163,7 @@ curl -X POST https://your-api.onrender.com/api/users/login \
 ## 🆘 Troubleshooting
 
 ### "Build failed - TypeScript cannot find types"
+
 - **Error**: `Could not find a declaration file for module 'express'`
 - **Fix**: TypeScript and `@types/*` packages are in `dependencies` (not `devDependencies`)
 - **Why**: When `NODE_ENV=production`, npm skips devDependencies, but we need types for build
@@ -160,22 +171,26 @@ curl -X POST https://your-api.onrender.com/api/users/login \
 - If issue persists, clear build cache in Render Dashboard and redeploy
 
 ### "Cannot connect to database"
+
 - Verify DATABASE_URL uses **Internal** URL (not External)
 - Check database and web service are in same region
 - Ensure `TRUST_PROXY=1` is set
 
 ### "Migrations failed"
+
 - Check Prisma schema is valid
 - Ensure migrations exist in `prisma/migrations/`
 - Run `npx prisma migrate dev` locally first
 
 ### "Server won't start"
+
 - Check all environment variables are set
 - Review Render logs for errors
 - Verify Node version compatibility
 - Make sure build completed successfully
 
 ### "First request very slow"
+
 - Free tier spins down after 15min inactivity
 - First request takes 30-60 seconds to wake up
 - Upgrade to Starter plan for always-on

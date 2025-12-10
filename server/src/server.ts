@@ -79,17 +79,17 @@ app.get("/health", async (req: Request, res: Response) => {
   try {
     // Check database connectivity
     await prisma.$queryRaw`SELECT 1`;
-    res.status(200).json({ 
-      status: "ok", 
+    res.status(200).json({
+      status: "ok",
       database: "connected",
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   } catch (error) {
     logger.error("Health check failed:", error);
-    res.status(503).json({ 
-      status: "error", 
+    res.status(503).json({
+      status: "error",
       database: "disconnected",
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 });
@@ -98,18 +98,18 @@ app.get("/health", async (req: Request, res: Response) => {
 app.get("/api/health", async (req: Request, res: Response) => {
   try {
     await prisma.$queryRaw`SELECT 1`;
-    res.status(200).json({ 
-      status: "ok", 
+    res.status(200).json({
+      status: "ok",
       database: "connected",
       version: "1.0.0",
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   } catch (error) {
     logger.error("API health check failed:", error);
-    res.status(503).json({ 
-      status: "error", 
+    res.status(503).json({
+      status: "error",
       database: "disconnected",
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 });

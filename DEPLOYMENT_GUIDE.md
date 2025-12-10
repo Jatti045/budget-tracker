@@ -1,11 +1,13 @@
 # BudgetTracker Production Deployment Guide
 
 ## Overview
+
 This guide walks you through deploying your BudgetTracker server and PostgreSQL database for production use with your Play Store app.
 
 ## Option 1: Render (Recommended - Free Tier Available)
 
 ### Prerequisites
+
 - GitHub account (your code should be pushed to GitHub)
 - Render account (https://render.com - sign up free)
 - All environment variables ready
@@ -32,6 +34,7 @@ This guide walks you through deploying your BudgetTracker server and PostgreSQL 
    - Connect your GitHub account
    - Select your `budgee-react-native` repository
 3. **Configure Service**:
+
    - **Name**: `budgettracker-api`
    - **Region**: Same as your database
    - **Branch**: `main`
@@ -50,23 +53,23 @@ This guide walks you through deploying your BudgetTracker server and PostgreSQL 
    NODE_ENV=production
    TRUST_PROXY=1
    JWT_SECRET_KEY=<your-secure-jwt-secret-min-32-chars>
-   
+
    # Cloudinary (for profile pictures)
    CLOUDINARY_CLOUD_NAME=<your-cloudinary-cloud-name>
    CLOUDINARY_API_KEY=<your-cloudinary-api-key>
    CLOUDINARY_API_SECRET=<your-cloudinary-api-secret>
-   
+
    # Email (for password reset)
    EMAIL_HOST=<your-smtp-host>
    EMAIL_PORT=<your-smtp-port>
    EMAIL_USER=<your-email>
    EMAIL_PASS=<your-email-password>
-   
+
    # Arcjet (security)
    ARCJET_ENV=production
    ARCJET_KEY=<your-arcjet-key>
    ARCJET_MODE=LIVE
-   
+
    # CORS
    ALLOWED_ORIGINS=*
    ```
@@ -83,11 +86,13 @@ This guide walks you through deploying your BudgetTracker server and PostgreSQL 
 Update your client environment variables:
 
 **File**: `client/.env` (create if doesn't exist)
+
 ```env
 EXPO_PUBLIC_API_BASE_URL=https://budgettracker-api.onrender.com/api
 ```
 
 Build your app with the production API URL:
+
 ```bash
 cd client
 npx expo prebuild
@@ -97,11 +102,13 @@ eas build --platform android --profile production
 ### Step 4: Test Your Deployment
 
 1. **Test API Health**:
+
    ```
    curl https://budgettracker-api.onrender.com/api/health
    ```
 
 2. **Check Database Connection**:
+
    - View Render logs in dashboard
    - Look for Prisma connection success
 
@@ -136,23 +143,28 @@ Best for more control and scaling. Requires Docker knowledge.
 ## Important Security Notes
 
 ### 1. Generate Secure JWT Secret
+
 ```bash
 # Generate a secure random string (32+ characters)
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
 
 ### 2. CORS Configuration
+
 For production, update `ALLOWED_ORIGINS` to your app's domain:
+
 ```
 ALLOWED_ORIGINS=https://yourdomain.com,exp://your-expo-url
 ```
 
 ### 3. Database Backups
+
 - Render Free: 90-day retention, no automatic backups
 - Render Paid: Automatic daily backups
 - **IMPORTANT**: Set up your own backup strategy for production
 
 ### 4. Environment Variables Security
+
 - Never commit `.env` files to Git
 - Use Render's environment variable dashboard
 - Rotate secrets regularly
@@ -162,6 +174,7 @@ ALLOWED_ORIGINS=https://yourdomain.com,exp://your-expo-url
 ## Monitoring & Maintenance
 
 ### Render Dashboard Features:
+
 1. **Logs**: View real-time application logs
 2. **Metrics**: CPU, Memory, Request stats
 3. **Shell Access**: Run commands on your server
@@ -170,8 +183,10 @@ ALLOWED_ORIGINS=https://yourdomain.com,exp://your-expo-url
 ### Common Issues:
 
 #### Build fails with TypeScript errors about missing types
+
 **Error**: `Could not find a declaration file for module 'express'` or similar
-**Solution**: 
+**Solution**:
+
 - This project moves TypeScript and type definitions to `dependencies` (not `devDependencies`)
 - This ensures they're installed in production builds where `NODE_ENV=production`
 - Build command: `npm ci && npm run build && npx prisma migrate deploy`
@@ -179,18 +194,21 @@ ALLOWED_ORIGINS=https://yourdomain.com,exp://your-expo-url
 - If you see this error, the dependencies may need reinstalling - trigger a manual deploy
 
 #### Server not starting
+
 - Check logs for errors
 - Verify DATABASE_URL is correct
 - Ensure Prisma migrations ran successfully
 - Confirm all required environment variables are set
 
 #### Database connection issues
+
 - Use **Internal Database URL** (not External) on Render
 - Check database is in same region as web service
 - Verify `TRUST_PROXY=1` is set
 - Internal URL format: `postgresql://user:pass@internal-host/db` (contains "internal")
 
 #### Slow first request (Free tier)
+
 - Render free tier spins down after 15 min inactivity
 - First request after inactivity takes 30-60 seconds
 - Consider Starter plan ($7/month) for always-on
@@ -212,6 +230,7 @@ When your app grows:
 ## Play Store Preparation
 
 ### Update app.json with production URL:
+
 ```json
 {
   "expo": {
@@ -223,6 +242,7 @@ When your app grows:
 ```
 
 ### Build for Production:
+
 ```bash
 cd client
 eas build --platform android --profile production
@@ -234,16 +254,19 @@ eas submit -p android
 ## Cost Estimate
 
 ### Free Tier (Good for Testing):
+
 - Render PostgreSQL: Free (90 days, then data deleted)
 - Render Web Service: Free (spins down after 15 min)
 - **Total**: $0/month
 
 ### Production Ready:
+
 - Render PostgreSQL Starter: $7/month
 - Render Web Service Starter: $7/month
 - **Total**: $14/month
 
 ### Alternative (Railway):
+
 - Everything included: ~$5-10/month depending on usage
 
 ---

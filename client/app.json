@@ -2,9 +2,10 @@
   "expo": {
     "name": "Budgee",
     "slug": "budgee-app",
-    "version": "0.0.1",
+    "version": "0.0.4",
     "description": "Budgee — budgeting made easy",
     "orientation": "portrait",
+    "privacy": "public",
     "icon": "./assets/images/icon.png",
     "scheme": "client",
     "userInterfaceStyle": "automatic",
@@ -18,9 +19,10 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.budgee.app",
-      "versionCode": 1,
-      "permissions": ["INTERNET", "ACCESS_NETWORK_STATE"]
+      "package": "com.budgee.finance",
+      "versionCode": 2,
+      "permissions": ["INTERNET", "ACCESS_NETWORK_STATE", "CAMERA"],
+      "blockedPermissions": ["RECORD_AUDIO"]
     },
     "web": {
       "bundler": "metro",
@@ -45,7 +47,7 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "eb1b67c5-7f55-41e6-aa04-b91e20a6118a"
+        "projectId": "67e785e9-2163-4914-b853-1416a5375df6"
       }
     }
   }

@@ -1,0 +1,30 @@
+﻿# Quick Fix for Render Database Migration
+
+## The Issue
+Your Render build command includes 'npx prisma migrate deploy' but it seems to have failed silently or the migrations table is out of sync.
+
+## Quick Solution: Force Redeploy on Render
+
+1. Go to https://dashboard.render.com
+2. Select your 'budgettracker-api' service  
+3. Click 'Manual Deploy' > 'Clear build cache & deploy'
+4. Watch the build logs to ensure migrations run successfully
+
+## Check Build Logs For:
+`
+ Prisma Migrate applied 7 migrations
+`
+
+## If Migrations Still Fail:
+
+Try using db push instead (temporary):
+
+1. In Render Dashboard > Settings > Build Command:
+   Change to: `npm ci && npm run build && npx prisma db push --force-reset`
+   
+2. Deploy again
+
+3. After successful deploy, change back to:
+   `npm ci && npm run build && npx prisma migrate deploy`
+
+## Verify Fix:
