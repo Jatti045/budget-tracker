@@ -112,7 +112,7 @@ function OTPModal({
           <ModalCloseButton setOpenSheet={confirmClose as any} />
         </View>
         <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          behavior="padding"
           style={{ flex: 1, backgroundColor: THEME.background }}
         >
           <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>

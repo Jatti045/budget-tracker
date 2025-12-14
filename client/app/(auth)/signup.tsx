@@ -127,10 +127,7 @@ const SignUpScreen = () => {
       style={{ backgroundColor: THEME.background }}
       className="flex-1"
     >
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        className="flex-1"
-      >
+      <KeyboardAvoidingView behavior="padding" className="flex-1">
         <ScrollView
           contentContainerStyle={{
             flexGrow: 1,

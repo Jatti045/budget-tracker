@@ -86,7 +86,7 @@ function ForgotPasswordModal({
           <ModalCloseButton setOpenSheet={setModalVisible} />
         </View>
         <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          behavior="padding"
           style={{ flex: 1, backgroundColor: THEME.background }}
         >
           <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
