@@ -70,9 +70,6 @@ app.use(cors());
 // Mount Arcjet middleware on /api to protect API endpoints (health remains public)
 //app.use("/api", arcjetMiddleware);
 
-app.use(() => {
-  console.log("Mounting routers");
-});
 app.use("/api/transaction", transactionRouter);
 app.use("/api/user", userRouter);
 app.use("/api/budget", budgetRouter);
