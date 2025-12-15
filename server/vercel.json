@@ -2,14 +2,21 @@
   "version": 2,
   "builds": [
     {
-      "src": "server.js",
-      "use": "@vercel/node"
+      "src": "src/server.ts",
+      "use": "@vercel/node",
+      "config": {
+        "zeroConfig": true
+      }
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "server.js"
+      "dest": "src/server.ts"
     }
-  ]
+  ],
+  "env": {
+    "NODE_ENV": "production",
+    "TRUST_PROXY": "1"
+  }
 }
