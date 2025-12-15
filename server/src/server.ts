@@ -94,11 +94,15 @@ app.get("/api/health", async (req: Request, res: Response) => {
   }
 });
 
-const server = app.listen(PORT, HOST, () => {
-  logger.info(`Server is running on http://${HOST}:${PORT}`);
-  // start background cleanup when the server is ready
-  startCleanupJob().catch((e) => logger.warn("startCleanupJob error:", e));
-});
+// Only start listening if NOT running on Vercel (for local development)
+let server: any = null;
+if (process.env.VERCEL !== "1") {
+  server = app.listen(PORT, HOST, () => {
+    logger.info(`Server is running on http://${HOST}:${PORT}`);
+    // start background cleanup when the server is ready
+    startCleanupJob().catch((e) => logger.warn("startCleanupJob error:", e));
+  });
+}
 
 function shutdown(signal: string) {
   return async () => {
@@ -120,7 +124,12 @@ function shutdown(signal: string) {
       logger.warn("Error disconnecting prisma:", e);
     }
 
-    server.close(() => process.exit(0));
+    // Only close server if it exists (not on Vercel)
+    if (server) {
+      server.close(() => process.exit(0));
+    } else {
+      process.exit(0);
+    }
   };
 }
 
