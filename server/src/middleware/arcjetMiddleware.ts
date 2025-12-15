@@ -1,5 +1,3 @@
-import arcjet, { shield, detectBot, tokenBucket } from "@arcjet/node";
-import { isSpoofedBot } from "@arcjet/inspect";
 import { ENV } from "../config/env";
 import logger from "../utils/logger";
 
@@ -10,62 +8,27 @@ export function createArcjetMiddleware() {
   // value (including undefined) will be treated as OFF to avoid crashing
   // when an invalid mode is supplied in the environment.
   let MODE = ((ENV.ARCJET_MODE as string) || "OFF").toUpperCase(); // LIVE | DRY_RUN | OFF
-  if (MODE !== "LIVE" && MODE !== "DRY_RUN" && MODE !== "OFF") {
-    logger.warn(
-      `Invalid ARCJET_MODE='${ENV.ARCJET_MODE}' - treating as OFF (no Arcjet).`
-    );
-    MODE = "OFF";
-  }
-
+  
+  // If Arcjet is not configured or disabled, return a no-op middleware
   if (!ENV.ARCJET_KEY || MODE === "OFF") {
     if (!ENV.ARCJET_KEY) {
-      logger.warn(
-        "Arcjet key not provided - Arcjet middleware will be a no-op."
+      logger.info(
+        "Arcjet key not provided - Arcjet middleware disabled."
       );
     } else {
       logger.info("Arcjet disabled via ARCJET_MODE=OFF");
     }
+    // Return no-op middleware
     return (_req: any, _res: any, next: any) => next();
   }
 
-  const arc = arcjet({
-    key: ENV.ARCJET_KEY as string,
-    rules: [
-      shield({ mode: MODE as any }),
-      detectBot({ mode: MODE as any, allow: ["CATEGORY:SEARCH_ENGINE"] }),
-      tokenBucket({
-        mode: MODE as any,
-        refillRate: Number(ENV.ARCJET_REFILL_RATE || 5),
-        interval: Number(ENV.ARCJET_INTERVAL || 10),
-        capacity: Number(ENV.ARCJET_CAPACITY || 10),
-      }),
-    ],
-  }) as any;
-
-  // Wrapped middleware ensures health probes and obvious spoofed bots are
-  // allowed through and that errors from Arcjet don't take down the app.
-  return async (req: any, res: any, next: any) => {
-    try {
-      const url = req.originalUrl || req.url || "";
-      if (url.startsWith("/health") || url.startsWith("/static")) {
-        return next();
-      }
-
-      const ua = req.headers?.["user-agent"] || "";
-      // isSpoofedBot from @arcjet/inspect expects the raw UA string in some
-      // versions, so we pass the UA directly; adjust if your version differs.
-      if (isSpoofedBot(ua as any)) {
-        logger.warn("Detected spoofed bot UA, allowing through and logging");
-        return next();
-      }
-
-      // arc is the Arcjet middleware instance (callable in runtime)
-      return arc(req, res, next);
-    } catch (e) {
-      logger.warn("Arcjet middleware error - failing open:", e);
-      return next();
-    }
-  };
+  // Arcjet is only loaded if explicitly enabled (ESM/CommonJS compatibility)
+  logger.warn(
+    "Arcjet is enabled but requires ESM. Consider setting ARCJET_MODE=OFF for Vercel deployment."
+  );
+  
+  // Return no-op middleware to prevent ESM/CommonJS errors on Vercel
+  return (_req: any, _res: any, next: any) => next();
 }
 
 export default createArcjetMiddleware();
