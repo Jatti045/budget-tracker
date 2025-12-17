@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useTheme } from "@/hooks/useRedux";
 import { useThemedAlert } from "@/utils/themedAlert";
 import {
@@ -13,12 +13,15 @@ import ModalCloseButton from "../modalCloseButton";
 import { LinearGradient } from "expo-linear-gradient";
 import Loader from "@/utils/loader";
 import { SafeAreaView } from "react-native-safe-area-context";
+import IconSelectorModal from "./IconSelectorModal";
 
 function BudgetModal({
   openSheet,
   setOpenSheet,
   category,
   setCategory,
+  icon,
+  setIcon,
   limit,
   setLimit,
   saving,
@@ -33,6 +36,8 @@ function BudgetModal({
   setOpenSheet: (val: boolean) => void;
   category: string;
   setCategory: (val: string) => void;
+  icon: string;
+  setIcon: (val: string) => void;
   limit: string;
   setLimit: (val: string) => void;
   saving: boolean;
@@ -45,12 +50,15 @@ function BudgetModal({
   const { THEME } = useTheme();
   const { showAlert } = useThemedAlert();
 
+  const [openIconSelector, setOpenIconSelector] = useState(false);
+
   const prevOpenRef = useRef(openSheet);
   useEffect(() => {
     if (!openSheet && prevOpenRef.current) {
       // Modal closed — reset form fields
       try {
         setCategory("");
+        setIcon("");
         setLimit("");
       } catch (e) {
         // ignore
@@ -64,6 +72,7 @@ function BudgetModal({
     if (editingBudget) {
       setCategory(String(editingBudget.category ?? ""));
       setLimit(String(editingBudget.limit ?? ""));
+      setIcon(String(editingBudget.icon ?? ""));
     }
   }, [editingBudget]);
   return (
@@ -97,7 +106,7 @@ function BudgetModal({
         <ScrollView showsVerticalScrollIndicator={false}>
           <View className="mt-4">
             <Text style={{ color: THEME.textSecondary }} className="mb-2">
-              Category
+              Category Name
             </Text>
             <TextInput
               value={category}
@@ -118,6 +127,44 @@ function BudgetModal({
               Tip: Pick a short category name like 'Groceries' or 'Transport'.
             </Text>
           </View>
+
+          {/* Icon Selector Modal */}
+          <View className="mt-4">
+            <Text style={{ color: THEME.textSecondary }} className="mb-2">
+              Category Icon
+            </Text>
+
+            <TouchableOpacity
+              onPress={() => setOpenIconSelector(true)}
+              className="py-3 px-3 rounded-md"
+              style={{ backgroundColor: THEME.inputBackground }}
+            >
+              <Text
+                style={{
+                  color: icon === "" ? THEME.textSecondary : THEME.textPrimary,
+                }}
+              >
+                {icon === "" ? "Choose an icon" : icon}
+              </Text>
+            </TouchableOpacity>
+
+            <Text
+              style={{ color: THEME.textSecondary, marginTop: 6 }}
+              className="text-sm"
+            >
+              Tip: Pick an icon that helps you recognize this category at a
+              glance.
+            </Text>
+          </View>
+
+          {openIconSelector && (
+            <IconSelectorModal
+              openIconSelector={openIconSelector}
+              setOpenIconSelector={setOpenIconSelector}
+              editingBudget={editingBudget}
+              setIcon={setIcon}
+            />
+          )}
 
           <View className="mt-4">
             <Text style={{ color: THEME.textSecondary }} className="mb-2">
@@ -206,11 +253,14 @@ function BudgetModal({
               onPress={async () => {
                 if (editingBudget && handleUpdateBudget) {
                   // basic validation
-                  if (!category.trim() || !limit.trim()) {
-                    showAlert({ title: "Please enter category and limit" });
+                  if (!category.trim() || !icon || !limit.trim()) {
+                    showAlert({
+                      title: "Please enter category, icon, and limit",
+                    });
                     return;
                   }
                   const parsedCategory = category.trim();
+                  const parsedIcon = icon.trim();
                   const parsedLimit = Number(limit);
                   if (isNaN(parsedLimit) || parsedLimit < 0) {
                     showAlert({
@@ -222,7 +272,8 @@ function BudgetModal({
                   // detect no-op
                   const noChange =
                     String(parsedCategory) === String(editingBudget.category) &&
-                    Number(parsedLimit) === Number(editingBudget.limit);
+                    Number(parsedLimit) === Number(editingBudget.limit) &&
+                    String(icon) === String(editingBudget.icon);
                   if (noChange) {
                     showAlert({
                       title: "No changes detected",
@@ -234,6 +285,7 @@ function BudgetModal({
                   try {
                     await handleUpdateBudget(editingBudget.id, {
                       category: parsedCategory,
+                      icon: parsedIcon,
                       limit: parsedLimit,
                     });
                     if (onClose) onClose();

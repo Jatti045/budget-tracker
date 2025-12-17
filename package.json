@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "expo": "^54.0.29",
+    "expo-constants": "^18.0.12",
+    "expo-image-picker": "^17.0.10",
+    "expo-router": "^6.0.20"
+  }
+}

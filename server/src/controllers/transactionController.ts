@@ -268,7 +268,8 @@ export const createTransaction = asyncHandler(
         });
       }
 
-      // Validate budget exists by budgetId
+      // Validate budget exists by budgetId and get budget Icon
+      let budgetIcon: string | null = null;
       if (budgetId && budgetId.trim() !== "") {
         const budget = await prisma.budget.findFirst({
           where: {
@@ -287,6 +288,8 @@ export const createTransaction = asyncHandler(
             message: "Budget not found or doesn't belong to user",
           });
         }
+
+        budgetIcon = budget.icon;
       }
 
       /* // Optional: Validate goal exists if goalId is provided
@@ -312,9 +315,9 @@ export const createTransaction = asyncHandler(
           name,
           date: transactionDate,
           category,
+          icon: budgetIcon,
           type,
           amount,
-          icon: icon?.trim() || null,
           description: description?.trim() || null,
           userId,
           budgetId: budgetId && budgetId.trim() !== "" ? budgetId : null,
@@ -540,12 +543,10 @@ export const updateTransaction = asyncHandler(
       });
 
       if (!existingTransaction) {
-        return res
-          .status(404)
-          .json({
-            success: false,
-            message: "Transaction not found or doesn't belong to user",
-          });
+        return res.status(404).json({
+          success: false,
+          message: "Transaction not found or doesn't belong to user",
+        });
       }
 
       // Accept partial updates
@@ -563,24 +564,19 @@ export const updateTransaction = asyncHandler(
 
       // Validate provided fields
       if (type && !["INCOME", "EXPENSE"].includes(type)) {
-        return res
-          .status(400)
-          .json({
-            success: false,
-            message:
-              "Invalid transaction type. Must be either INCOME or EXPENSE",
-          });
+        return res.status(400).json({
+          success: false,
+          message: "Invalid transaction type. Must be either INCOME or EXPENSE",
+        });
       }
 
       let newAmount = existingTransaction.amount;
       if (amount !== undefined) {
         if (typeof amount !== "number" || amount <= 0) {
-          return res
-            .status(400)
-            .json({
-              success: false,
-              message: "Amount must be a positive number",
-            });
+          return res.status(400).json({
+            success: false,
+            message: "Amount must be a positive number",
+          });
         }
         newAmount = amount;
       }
@@ -617,12 +613,10 @@ export const updateTransaction = asyncHandler(
           where: { id: newBudgetId, userId },
         });
         if (!budget) {
-          return res
-            .status(404)
-            .json({
-              success: false,
-              message: "Budget not found or doesn't belong to user",
-            });
+          return res.status(404).json({
+            success: false,
+            message: "Budget not found or doesn't belong to user",
+          });
         }
       }
 
@@ -632,12 +626,10 @@ export const updateTransaction = asyncHandler(
           where: { id: newGoalId, userId },
         });
         if (!goal) {
-          return res
-            .status(404)
-            .json({
-              success: false,
-              message: "Goal not found or doesn't belong to user",
-            });
+          return res.status(404).json({
+            success: false,
+            message: "Goal not found or doesn't belong to user",
+          });
         }
       }
 

@@ -2,7 +2,7 @@
   "build": {
     "production": {
       "env": {
-        "EXPO_PUBLIC_API_BASE_URL": "https://budgettracker-api-awb6.onrender.com/api"
+        "EXPO_PUBLIC_API_BASE_URL": "https://budgettracker-api.vercel.app/api"
       },
       "android": {
         "buildType": "app-bundle"

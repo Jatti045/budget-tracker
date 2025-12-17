@@ -17,6 +17,7 @@ import { JSX } from "react/jsx-runtime";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useState, useEffect, useRef } from "react";
 import ModalCloseButton from "../modalCloseButton";
+import { IBudget } from "@/store/slices/budgetSlice";
 
 function TransactionModal({
   openSheet,
@@ -33,7 +34,6 @@ function TransactionModal({
   monthEndDate,
   budgets,
   handleCreateTransaction,
-  getCategoryIcon,
   capitalizeFirst,
   // optional editing props
   editingTransaction,
@@ -53,9 +53,8 @@ function TransactionModal({
   setDate: (val: Date) => void;
   monthStartDate: Date;
   monthEndDate: Date;
-  budgets: { id: string; category: string }[];
+  budgets: IBudget[];
   handleCreateTransaction: () => void;
-  getCategoryIcon: (category: string, color: string) => JSX.Element;
   capitalizeFirst: (str: string) => string;
   editingTransaction?: any | null;
   handleUpdateTransaction?: (id: string, updates: any) => Promise<void> | any;
@@ -123,6 +122,8 @@ function TransactionModal({
       return d.toDateString();
     }
   };
+  console.log("budget: ", budgets);
+
   return (
     <Modal
       visible={openSheet}
@@ -237,7 +238,11 @@ function TransactionModal({
                         : "border-1"
                     }`}
                   >
-                    {getCategoryIcon(budget.category, THEME.primary)}
+                    <Feather
+                      name={budget.icon as keyof typeof Feather.glyphMap}
+                      size={24}
+                      color={THEME.secondary}
+                    />
                     <Text style={{ color: THEME.textPrimary }}>
                       {capitalizeFirst(budget.category)}
                     </Text>

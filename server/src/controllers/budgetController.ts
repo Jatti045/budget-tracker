@@ -15,7 +15,7 @@ export const createBudget = asyncHandler(
           .json({ success: false, message: "Unauthorized" });
       }
 
-      const { category, limit, month, year } = req.body;
+      const { category, icon, limit, month, year } = req.body;
 
       // Check if budget with same category exists for user
       const existingBudget = await prisma.budget.findFirst({
@@ -36,16 +36,18 @@ export const createBudget = asyncHandler(
         });
       }
 
-      if (!category || limit === undefined) {
-        return res
-          .status(400)
-          .json({ success: false, message: "Category and limit are required" });
+      if (!category || !icon || limit === undefined) {
+        return res.status(400).json({
+          success: false,
+          message: "Category, icon, and limit are required",
+        });
       }
 
       const newBudget = await prisma.budget.create({
         data: {
           userId,
           category,
+          icon,
           limit,
           date: new Date(year, month, 1),
         },
@@ -184,12 +186,10 @@ export const updateBudget = asyncHandler(
         where: { id: budgetId },
       });
       if (!existing || existing.userId !== userId) {
-        return res
-          .status(404)
-          .json({
-            success: false,
-            message: "Budget not found or doesn't belong to user",
-          });
+        return res.status(404).json({
+          success: false,
+          message: "Budget not found or doesn't belong to user",
+        });
       }
 
       const { category, limit, month, year, icon } = req.body;
@@ -223,13 +223,11 @@ export const updateBudget = asyncHandler(
         });
 
         if (conflict) {
-          return res
-            .status(400)
-            .json({
-              success: false,
-              message:
-                "Another budget with this category exists for the same month",
-            });
+          return res.status(400).json({
+            success: false,
+            message:
+              "Another budget with this category exists for the same month",
+          });
         }
       }
 
@@ -237,23 +235,19 @@ export const updateBudget = asyncHandler(
       if (typeof limit !== "undefined") {
         const numLimit = Number(limit);
         if (isNaN(numLimit) || numLimit < 0) {
-          return res
-            .status(400)
-            .json({
-              success: false,
-              message: "Limit must be a non-negative number",
-            });
+          return res.status(400).json({
+            success: false,
+            message: "Limit must be a non-negative number",
+          });
         }
 
         // Ensure limit not below already spent amount
         if (numLimit < existing.spent) {
-          return res
-            .status(400)
-            .json({
-              success: false,
-              message:
-                "Limit cannot be less than current spent amount. Adjust transactions before reducing the limit.",
-            });
+          return res.status(400).json({
+            success: false,
+            message:
+              "Limit cannot be less than current spent amount. Adjust transactions before reducing the limit.",
+          });
         }
       }
 
@@ -271,13 +265,11 @@ export const updateBudget = asyncHandler(
         data: updateData,
       });
 
-      res
-        .status(200)
-        .json({
-          success: true,
-          message: "Budget updated successfully",
-          data: updated,
-        });
+      res.status(200).json({
+        success: true,
+        message: "Budget updated successfully",
+        data: updated,
+      });
     } catch (error) {
       logger.error("Error updating budget:", error);
       res.status(500).json({ success: false, message: "Server error" });

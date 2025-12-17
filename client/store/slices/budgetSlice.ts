@@ -15,6 +15,7 @@ export interface IBudget {
   id: string;
   date: Date;
   category: string;
+  icon: string;
   limit: number;
   spent: number;
   userId: string;
@@ -40,6 +41,7 @@ export const createBudget = createAsyncThunk(
   async (
     budgetData: {
       category: string;
+      icon: string;
       limit: number;
       month: number;
       year: number;

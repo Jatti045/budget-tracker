@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+import { Feather, Ionicons } from "@expo/vector-icons";
 
 export function capitalizeFirst(text: string): string {
   if (!text) return "";
@@ -33,49 +33,4 @@ export function formatDate(dateString: string): string {
     day: "numeric",
     year: "numeric",
   });
-}
-
-export function getCategoryIcon(
-  category: string,
-  color?: string,
-  size?: number
-) {
-  switch (category.toString().toUpperCase()) {
-    case "FOOD":
-      return (
-        <Ionicons
-          name="fast-food"
-          size={size || 24}
-          color={color || "#FF4D6D"}
-        />
-      );
-    case "TRANSPORT":
-      return (
-        <Ionicons name="car" size={size || 24} color={color || "#FF4D6D"} />
-      );
-    case "ENTERTAINMENT":
-      return (
-        <Ionicons name="film" size={size || 24} color={color || "#FF4D6D"} />
-      );
-    case "RENT":
-      return (
-        <Ionicons name="home" size={size || 24} color={color || "#FF4D6D"} />
-      );
-    case "OTHER":
-      return (
-        <Ionicons
-          name="help-circle"
-          size={size || 24}
-          color={color || "#FF4D6D"}
-        />
-      );
-    default:
-      return (
-        <Ionicons
-          name="help-circle"
-          size={size || 24}
-          color={color || "#FF4D6D"}
-        />
-      );
-  }
 }

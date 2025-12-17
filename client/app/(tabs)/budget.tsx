@@ -23,7 +23,7 @@ import {
 } from "@/store/slices/budgetSlice";
 import { Feather } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { capitalizeFirst, formatDate, getCategoryIcon } from "@/utils/helper";
+import { capitalizeFirst, formatDate } from "@/utils/helper";
 import MaskedView from "@react-native-masked-view/masked-view";
 import BudgetModal from "@/components/budget/BudgetModal";
 import { useThemedAlert } from "@/utils/themedAlert";
@@ -38,14 +38,15 @@ export default function Goals() {
 
   const [openSheet, setOpenSheet] = React.useState(false);
   const [category, setCategory] = React.useState("");
+  const [icon, setIcon] = React.useState("");
   const [limit, setLimit] = React.useState("");
   const [saving, setSaving] = React.useState(false);
   const [editingBudget, setEditingBudget] = React.useState<any | null>(null);
 
   const handleCreateBudget = async () => {
     // validation
-    if (!category.trim() || !limit.trim()) {
-      showAlert({ title: "Please enter category and limit" });
+    if (!category.trim() || !limit.trim() || !icon.trim()) {
+      showAlert({ title: "Please enter category, icon, and limit" });
       return;
     }
 
@@ -63,6 +64,7 @@ export default function Goals() {
       const response = await dispatch(
         createBudget({
           category: parsedCategory,
+          icon: icon,
           limit: parsedLimit,
           month: currentMonth,
           year: currentYear,
@@ -253,6 +255,7 @@ export default function Goals() {
                   onPress={() => {
                     setEditingBudget(budget);
                     setCategory(String(budget.category ?? ""));
+                    setIcon(String(budget.icon ?? ""));
                     setLimit(String(budget.limit ?? ""));
                     setOpenSheet(true);
                   }}
@@ -312,11 +315,11 @@ export default function Goals() {
                       </View>
 
                       <View className="items-center ml-4">
-                        {getCategoryIcon(
-                          budget.category,
-                          overspent ? THEME.danger : THEME.secondary,
-                          64
-                        )}
+                        <Feather
+                          name={budget.icon as keyof typeof Feather.glyphMap}
+                          size={64}
+                          color={THEME.secondary}
+                        />
                         <View
                           className="mt-2 px-2 py-1 rounded-md"
                           style={{
@@ -461,6 +464,8 @@ export default function Goals() {
         setOpenSheet={setOpenSheet}
         category={category}
         setCategory={setCategory}
+        icon={icon}
+        setIcon={setIcon}
         limit={limit}
         setLimit={setLimit}
         saving={saving}

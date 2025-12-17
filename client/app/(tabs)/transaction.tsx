@@ -34,7 +34,7 @@ import {
 } from "@/hooks/useRedux";
 import { TransactionType } from "@/api/transaction";
 import Loader from "@/utils/loader";
-import { formatDate, capitalizeFirst, getCategoryIcon } from "@/utils/helper";
+import { formatDate, capitalizeFirst } from "@/utils/helper";
 import TransactionModal from "@/components/transaction/transactionModal";
 import SearchTransaction from "@/components/transaction/searchTransaction";
 import AddNewTransactionButton from "@/components/transaction/addNewTransactionButton";
@@ -45,6 +45,7 @@ export default function Index() {
   // transaction, budget, theme, calendar state
   const transactions = useTransactions();
   const budgets = useBudgets();
+
   const { THEME } = useTheme();
   const calendar = useCalendar();
   const { showAlert } = useThemedAlert();
@@ -450,7 +451,11 @@ export default function Index() {
                   }}
                   className="rounded-full"
                 >
-                  {getCategoryIcon(tx.category)}
+                  <Feather
+                    name={tx.icon === "" ? "dollar-sign" : tx.icon}
+                    size={24}
+                    color={THEME.secondary}
+                  />
                 </View>
                 <View style={{ marginLeft: 12, flex: 1, minWidth: 0 }}>
                   <Text
@@ -501,7 +506,6 @@ export default function Index() {
         monthEndDate={monthEndDate}
         budgets={budgets}
         handleCreateTransaction={handleCreateTransaction}
-        getCategoryIcon={getCategoryIcon}
         capitalizeFirst={capitalizeFirst}
         editingTransaction={editingTransaction}
         handleUpdateTransaction={handleUpdateTransaction}
