@@ -322,14 +322,14 @@ export default function Index() {
                     message: message || "Failed to delete transaction",
                   });
                 }
-              }, 10);
+              }, 400);
             } catch (err: any) {
               setTimeout(() => {
                 showAlert({
                   title: "Error",
                   message: err.message || "Failed to delete transaction",
                 });
-              }, 10);
+              }, 400);
             }
           },
         },

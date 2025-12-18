@@ -7,7 +7,7 @@ import { ENV } from "../config/env";
 const transports: winston.transport[] = [new winston.transports.Console()];
 
 // Only add file logging on local/non-serverless environments
-if (process.env.VERCEL !== "1") {
+if (!ENV.VERCEL) {
   transports.push(
     new winston.transports.File({ filename: "logs/error.log", level: "error" }),
     new winston.transports.File({ filename: "logs/combined.log" })

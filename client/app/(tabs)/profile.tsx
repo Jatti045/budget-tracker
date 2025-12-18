@@ -180,43 +180,45 @@ export default function ProfileScreen() {
           style: "destructive",
           onPress: () => {
             // Second layer of protection: irreversible warning
-            showAlert({
-              title: "Delete Account — Irreversible",
-              message:
-                "This action is permanent. Once you delete your account, all your data will be lost and cannot be recovered. Are you absolutely sure you want to continue?",
-              buttons: [
-                { text: "Cancel", style: "cancel" },
-                {
-                  text: "Delete Account",
-                  style: "destructive",
-                  onPress: async () => {
-                    if (user?.id) {
-                      const response = await dispatch(
-                        deleteUserAccount(user.id)
-                      );
+            setTimeout(() => {
+              showAlert({
+                title: "Delete Account — Irreversible",
+                message:
+                  "This action is permanent. Once you delete your account, all your data will be lost and cannot be recovered. Are you absolutely sure you want to continue?",
+                buttons: [
+                  { text: "Cancel", style: "cancel" },
+                  {
+                    text: "Delete Account",
+                    style: "destructive",
+                    onPress: async () => {
+                      if (user?.id) {
+                        const response = await dispatch(
+                          deleteUserAccount(user.id)
+                        );
 
-                      const { success, message } = response.payload as {
-                        success: boolean;
-                        message: string;
-                      };
-                      if (success) {
-                        showAlert({
-                          title: "Account Deleted",
-                          message:
-                            "Your account has been deleted successfully.",
-                        });
-                        router.push("/login");
-                      } else {
-                        showAlert({
-                          title: "Deletion Failed",
-                          message: message || "Failed to delete account.",
-                        });
+                        const { success, message } = response.payload as {
+                          success: boolean;
+                          message: string;
+                        };
+                        if (success) {
+                          showAlert({
+                            title: "Account Deleted",
+                            message:
+                              "Your account has been deleted successfully.",
+                          });
+                          router.push("/login");
+                        } else {
+                          showAlert({
+                            title: "Deletion Failed",
+                            message: message || "Failed to delete account.",
+                          });
+                        }
                       }
-                    }
+                    },
                   },
-                },
-              ],
-            });
+                ],
+              });
+            }, 400);
           },
         },
       ],

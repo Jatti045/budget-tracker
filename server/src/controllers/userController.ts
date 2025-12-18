@@ -130,16 +130,9 @@ export const deleteAccount = asyncHandler(
           .json({ success: false, message: "User not found." });
       }
 
-      // Delete dependent records first to avoid FK constraint errors.
-      // Order: transactions -> budgets -> goals -> user
-      await prisma.$transaction([
-        prisma.transaction.deleteMany({ where: { userId } }),
-        prisma.budget.deleteMany({ where: { userId } }),
-        prisma.goal.deleteMany({ where: { userId } }),
-        prisma.user.delete({ where: { id: userId } }),
-      ]);
+      console.log("Existing User: ", existingUser);
 
-      // Attempt to remove profile picture from Cloudinary (best-effort)
+      // Remove profile picture from Cloudinary
       if (existingUser.profilePic) {
         try {
           const urlParts = existingUser.profilePic.split("/");
@@ -152,6 +145,15 @@ export const deleteAccount = asyncHandler(
           logger.warn("Failed to delete profile picture from Cloudinary:", e);
         }
       }
+
+      // Delete dependent records first to avoid errors.
+      // Order: transactions -> budgets -> goals -> user
+      await prisma.$transaction([
+        prisma.transaction.deleteMany({ where: { userId } }),
+        prisma.budget.deleteMany({ where: { userId } }),
+        prisma.goal.deleteMany({ where: { userId } }),
+        prisma.user.delete({ where: { id: userId } }),
+      ]);
 
       res.status(200).json({
         success: true,
@@ -205,14 +207,14 @@ export const uploadProfilePicture = asyncHandler(
       }
 
       // If user has an existing profile picture, extract the public ID to delete it later
-      let oldPublicId = null;
+      /*       let oldPublicId = null;
       if (currentUser.profilePic) {
         // Extract public ID from Cloudinary URL
         const urlParts = currentUser.profilePic.split("/");
         const fileNameWithExtension = urlParts[urlParts.length - 1];
         const fileName = fileNameWithExtension.split(".")[0];
         oldPublicId = `profile-pictures/${fileName}`;
-      }
+      } */
 
       // Upload new image to Cloudinary
       const { url: profilePicUrl, publicId } = await uploadToCloudinary(
@@ -236,9 +238,9 @@ export const uploadProfilePicture = asyncHandler(
       });
 
       // Delete old profile picture from Cloudinary (if it exists)
-      if (oldPublicId) {
+      /*       if (oldPublicId) {
         await deleteFromCloudinary(oldPublicId);
-      }
+      } */
 
       logger.info(`Profile picture uploaded successfully for user: ${userId}`);
 
@@ -282,16 +284,16 @@ export const deleteProfilePicture = asyncHandler(
           .json({ success: false, message: "User not found." });
       }
 
-      if (currentUser.profilePic) {
+      /*       if (currentUser.profilePic) {
         // Extract public ID like in upload handler
         const urlParts = currentUser.profilePic.split("/");
         const fileNameWithExtension = urlParts[urlParts.length - 1];
         const fileName = fileNameWithExtension.split(".")[0];
         const publicId = `profile-pictures/${fileName}`;
 
-        // Attempt to delete from Cloudinary (best-effort)
+        // Attempt to delete from Cloudinary
         await deleteFromCloudinary(publicId);
-      }
+      } */
 
       // Update DB to remove profilePic reference
       const updatedUser = await prisma.user.update({

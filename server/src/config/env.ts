@@ -2,6 +2,7 @@ import "dotenv/config";
 
 export const ENV = {
   DATABASE_URL: process.env.DATABASE_URL,
+  VERCEL: process.env.VERCEL === "1",
   PORT: process.env.PORT,
   HOST: process.env.HOST,
   ARCJET_ENV: process.env.ARCJET_ENV,
@@ -12,7 +13,6 @@ export const ENV = {
   ARCJET_CAPACITY: process.env.ARCJET_CAPACITY,
   NODE_ENV: process.env.NODE_ENV,
   // When behind a proxy (Render, Heroku), set TRUST_PROXY to '1' to enable X-Forwarded-* headers
-  TRUST_PROXY: process.env.TRUST_PROXY ?? "",
   JWT_SECRET_KEY: process.env.JWT_SECRET_KEY,
   CLOUDINARY_CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME,
   CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY,

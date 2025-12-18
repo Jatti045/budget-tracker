@@ -8,6 +8,8 @@ import { ENV } from "./config/env";
 import helmet from "helmet";
 import cors from "cors";
 import arcjetMiddleware from "./middleware/arcjetMiddleware";
+import { startCleanupJob, stopCleanupJob } from "./utils/CleanupManager";
+import { errorHandler } from "./middleware/errorHandler";
 
 const app = express();
 const PORT = (ENV.PORT || 3000) as number;
@@ -15,61 +17,15 @@ const HOST = ENV.HOST || "0.0.0.0";
 
 export const prisma = new PrismaClient();
 
-// Background cleanup: delete expired password reset tokens
-let cleanupInterval: NodeJS.Timeout | null = null;
-
-async function deleteExpiredResetTokens() {
-  try {
-    const now = new Date();
-    const result = await prisma.passwordResetToken.deleteMany({
-      where: {
-        expiresAt: {
-          lt: now,
-        },
-      },
-    });
-    if (result && typeof result.count === "number") {
-      logger.info(`Deleted ${result.count} expired password reset tokens.`);
-    }
-  } catch (err) {
-    logger.warn("Failed to delete expired password reset tokens:", err);
-  }
-}
-
-// Run cleanup immediately and then every minute
-async function startCleanupJob() {
-  try {
-    await deleteExpiredResetTokens();
-    cleanupInterval = setInterval(() => {
-      deleteExpiredResetTokens().catch((e) =>
-        logger.warn("Error in scheduled deleteExpiredResetTokens:", e)
-      );
-    }, 60 * 1000); // every 60 seconds
-    logger.info("Started expired password reset token cleanup job.");
-  } catch (e) {
-    logger.warn("Failed to start cleanup job:", e);
-  }
-}
-
 // Middlewares
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-// Set trust proxy when running behind a proxy (Render, Heroku).
-if (ENV.TRUST_PROXY) {
-  const trust =
-    ENV.TRUST_PROXY === "1" || ENV.TRUST_PROXY.toLowerCase() === "true";
-  if (trust) app.set("trust proxy", 1);
-}
-
 app.use(helmet());
-
-// Configure CORS to allow all origins
 app.use(cors());
 
 // Routes
-// Mount Arcjet middleware on /api to protect API endpoints (health remains public)
+// Arcjet middleware currently disabled (fix is needed)
 app.use("/api", arcjetMiddleware);
-
 app.use("/api/transaction", transactionRouter);
 app.use("/api/user", userRouter);
 app.use("/api/budget", budgetRouter);
@@ -77,7 +33,7 @@ app.use("/api/budget", budgetRouter);
 // API health endpoint
 app.get("/api/health", async (req: Request, res: Response) => {
   try {
-    await prisma.$queryRaw`SELECT 1`;
+    await prisma.$queryRaw`SELECT 1`; // simple query to check DB connection
     res.status(200).json({
       status: "ok",
       database: "connected",
@@ -94,9 +50,12 @@ app.get("/api/health", async (req: Request, res: Response) => {
   }
 });
 
+// Error handling middleware
+app.use(errorHandler);
+
 // Only start listening if NOT running on Vercel (for local development)
 let server: any = null;
-if (process.env.VERCEL !== "1") {
+if (!ENV.VERCEL) {
   server = app.listen(PORT, HOST, () => {
     logger.info(`Server is running on http://${HOST}:${PORT}`);
     // start background cleanup when the server is ready
@@ -110,10 +69,7 @@ function shutdown(signal: string) {
 
     // Stop cleanup interval
     try {
-      if (cleanupInterval) {
-        clearInterval(cleanupInterval as unknown as number);
-        cleanupInterval = null;
-      }
+      stopCleanupJob();
     } catch (e) {
       logger.warn("Error clearing cleanup interval:", e);
     }
@@ -124,12 +80,7 @@ function shutdown(signal: string) {
       logger.warn("Error disconnecting prisma:", e);
     }
 
-    // Only close server if it exists (not on Vercel)
-    if (server) {
-      server.close(() => process.exit(0));
-    } else {
-      process.exit(0);
-    }
+    process.exit(0);
   };
 }
 
