@@ -16,6 +16,7 @@ import { useTheme, useAppDispatch, useAppSelector } from "@/hooks/useRedux";
 import { useThemedAlert } from "@/utils/themedAlert";
 import { resetPassword, selectIsLoading } from "@/store/slices/userSlice";
 import { router } from "expo-router";
+import { LinearGradient } from "expo-linear-gradient";
 
 function ResetPasswordModal({
   visible,
@@ -112,6 +113,7 @@ function ResetPasswordModal({
     <Modal
       visible={visible}
       animationType="slide"
+      transparent={true}
       presentationStyle="fullScreen"
     >
       <SafeAreaView className="flex-1 relative">
@@ -124,68 +126,67 @@ function ResetPasswordModal({
         >
           <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
             <View className="flex-1 px-4">
-              <View className="mt-20 px-2">
-                <Text
-                  style={{ color: THEME.textPrimary }}
-                  className="text-xl font-bold text-center mb-6"
+              <Text
+                style={{ color: THEME.textPrimary }}
+                className="text-xl font-bold text-center mb-6"
+              >
+                Set New Password
+              </Text>
+
+              <Text
+                style={{ color: THEME.textSecondary }}
+                className="mb-2 text-center"
+              >
+                Enter your new password
+              </Text>
+
+              <TextInput
+                value={newPassword}
+                onChangeText={setNewPassword}
+                placeholder="New password"
+                secureTextEntry
+                placeholderTextColor={THEME.placeholderText}
+                style={{
+                  backgroundColor: THEME.inputBackground,
+                  color: THEME.textPrimary,
+                  padding: 12,
+                  borderRadius: 8,
+                  borderWidth: 1,
+                  borderColor: THEME.border,
+                  marginVertical: 8,
+                }}
+              />
+
+              <TextInput
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                placeholder="Confirm password"
+                secureTextEntry
+                placeholderTextColor={THEME.placeholderText}
+                style={{
+                  backgroundColor: THEME.inputBackground,
+                  color: THEME.textPrimary,
+                  padding: 12,
+                  borderRadius: 8,
+                  borderWidth: 1,
+                  borderColor: THEME.border,
+                  marginVertical: 8,
+                }}
+              />
+
+              <View className="mt-4">
+                <TouchableWithoutFeedback
+                  onPress={isSubmitting ? undefined : handleSubmit}
                 >
-                  Set New Password
-                </Text>
-
-                <Text
-                  style={{ color: THEME.textSecondary }}
-                  className="mb-2 text-center"
-                >
-                  Enter your new password
-                </Text>
-
-                <TextInput
-                  value={newPassword}
-                  onChangeText={setNewPassword}
-                  placeholder="New password"
-                  secureTextEntry
-                  placeholderTextColor={THEME.placeholderText}
-                  style={{
-                    backgroundColor: THEME.inputBackground,
-                    color: THEME.textPrimary,
-                    padding: 12,
-                    borderRadius: 8,
-                    borderWidth: 1,
-                    borderColor: THEME.border,
-                    marginVertical: 8,
-                  }}
-                />
-
-                <TextInput
-                  value={confirmPassword}
-                  onChangeText={setConfirmPassword}
-                  placeholder="Confirm password"
-                  secureTextEntry
-                  placeholderTextColor={THEME.placeholderText}
-                  style={{
-                    backgroundColor: THEME.inputBackground,
-                    color: THEME.textPrimary,
-                    padding: 12,
-                    borderRadius: 8,
-                    borderWidth: 1,
-                    borderColor: THEME.border,
-                    marginVertical: 8,
-                  }}
-                />
-
-                <View className="mt-4">
-                  <TouchableWithoutFeedback
-                    onPress={isSubmitting ? undefined : handleSubmit}
-                  >
-                    <View
+                  <View>
+                    <LinearGradient
+                      colors={[THEME.primary, THEME.secondary]}
+                      start={[0, 0]}
+                      end={[1, 1]}
                       style={{
-                        backgroundColor: THEME.primary,
-                        padding: 12,
+                        paddingVertical: 12,
                         borderRadius: 8,
                         alignItems: "center",
-                        opacity: isSubmitting ? 0.6 : 1,
-                        flexDirection: "row",
-                        justifyContent: "center",
                       }}
                     >
                       {isSubmitting ? (
@@ -203,9 +204,9 @@ function ResetPasswordModal({
                           Save New Password
                         </Text>
                       )}
-                    </View>
-                  </TouchableWithoutFeedback>
-                </View>
+                    </LinearGradient>
+                  </View>
+                </TouchableWithoutFeedback>
               </View>
             </View>
           </TouchableWithoutFeedback>

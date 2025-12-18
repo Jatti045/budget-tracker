@@ -39,8 +39,17 @@ export const useTransactionStatus = () => {
     isAdding: state.transaction.isAdding,
     isEditing: state.transaction.isEditing,
     isLoading: state.transaction.isLoading,
+    isLoadingMore: state.transaction.isLoadingMore,
     error: state.transaction.error,
   }));
+};
+
+export const useTransactionPagination = () => {
+  return useAppSelector((state) => state.transaction.pagination);
+};
+
+export const useTransactionMonthSummary = () => {
+  return useAppSelector((state) => state.transaction.monthSummary);
 };
 
 // Custom hooks for budget state selections

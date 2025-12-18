@@ -23,6 +23,9 @@ export default function TabsLayout() {
         searchQuery: "",
         currentMonth: month,
         currentYear: year,
+        page: 1,
+        limit: 10,
+        useCache: false, // Disable cache to get accurate pagination
       })
     );
     dispatch(fetchBudgets({ currentMonth: month, currentYear: year }));

@@ -32,6 +32,17 @@ export interface TransactionState {
     topExpenses: ITransaction[];
     topIncomes: ITransaction[];
   };
+  pagination: {
+    currentPage: number;
+    totalPages: number;
+    totalCount: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+  };
+  monthSummary: {
+    totalAmount: number;
+  };
+  isLoadingMore: boolean;
 }
 
 const initialState: TransactionState = {
@@ -58,6 +69,17 @@ const initialState: TransactionState = {
     topExpenses: [],
     topIncomes: [],
   },
+  pagination: {
+    currentPage: 1,
+    totalPages: 1,
+    totalCount: 0,
+    hasNextPage: false,
+    hasPrevPage: false,
+  },
+  monthSummary: {
+    totalAmount: 0,
+  },
+  isLoadingMore: false,
 };
 
 export const fetchTransaction = createAsyncThunk(
@@ -70,6 +92,8 @@ export const fetchTransaction = createAsyncThunk(
       startDate = null,
       endDate = null,
       useCache = true,
+      page = 1,
+      limit = 10,
     }: {
       searchQuery: string;
       currentMonth: number;
@@ -77,12 +101,39 @@ export const fetchTransaction = createAsyncThunk(
       startDate?: string | null;
       endDate?: string | null;
       useCache?: boolean;
+      page?: number;
+      limit?: number;
     },
     { rejectWithValue }
   ) => {
     try {
-      // If allowed, return cached data immediately to avoid API call
-      if (useCache) {
+      // Disable cache when using pagination to ensure accurate pagination data
+      if (page > 1 || !useCache) {
+        const response = await transactionAPI.fetchAll({
+          searchQuery,
+          currentMonth,
+          currentYear,
+          startDate,
+          endDate,
+          page,
+          limit,
+        });
+
+        // persist to cache only for page 1 (overwrite month cache)
+        if (page === 1) {
+          try {
+            const toStore = response.data?.transaction ?? response.data ?? [];
+            await setTransactionsCache(currentYear, currentMonth, toStore);
+          } catch (err) {
+            // ignore
+          }
+        }
+
+        return response.data;
+      }
+
+      // If allowed, return cached data immediately to avoid API call (page 1 only)
+      if (useCache && page === 1) {
         try {
           const cached = await getTransactionsCache(currentYear, currentMonth);
           if (cached) {
@@ -93,6 +144,8 @@ export const fetchTransaction = createAsyncThunk(
                   searchQuery: "",
                   currentMonth,
                   currentYear,
+                  page: 1,
+                  limit,
                 });
                 const toStore = fresh.data?.transaction ?? fresh.data ?? [];
                 await setTransactionsCache(currentYear, currentMonth, toStore);
@@ -100,7 +153,18 @@ export const fetchTransaction = createAsyncThunk(
                 // ignore background revalidation errors
               }
             })();
-            return { transaction: cached } as any;
+            // Return cached data with default pagination
+            return {
+              transaction: cached,
+              pagination: {
+                currentPage: 1,
+                totalPages: 1,
+                totalCount: cached.length,
+                hasNextPage: false,
+                hasPrevPage: false,
+                limit: limit,
+              },
+            } as any;
           }
         } catch (e) {
           // ignore cache errors and fall back to network
@@ -116,6 +180,8 @@ export const fetchTransaction = createAsyncThunk(
         currentYear,
         startDate,
         endDate,
+        page,
+        limit,
       });
 
       // persist to cache (overwrite month cache)
@@ -136,6 +202,49 @@ export const fetchTransaction = createAsyncThunk(
         // ignore
       }
       return rejectWithValue(error.message || "Failed to fetch transactions");
+    }
+  }
+);
+
+// Fetch more transactions (for infinite scroll)
+export const fetchMoreTransactions = createAsyncThunk(
+  "transactions/fetchMore",
+  async (
+    {
+      searchQuery = "",
+      currentMonth,
+      currentYear,
+      startDate = null,
+      endDate = null,
+      page = 1,
+      limit = 10,
+    }: {
+      searchQuery: string;
+      currentMonth: number;
+      currentYear: number;
+      startDate?: string | null;
+      endDate?: string | null;
+      page?: number;
+      limit?: number;
+    },
+    { rejectWithValue }
+  ) => {
+    try {
+      const response = await transactionAPI.fetchAll({
+        searchQuery,
+        currentMonth,
+        currentYear,
+        startDate,
+        endDate,
+        page,
+        limit,
+      });
+
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(
+        error.message || "Failed to fetch more transactions"
+      );
     }
   }
 );
@@ -237,7 +346,7 @@ const transactionSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Fetch Transactions
+      // Fetch Transactions (initial load - replaces transactions)
       .addCase(fetchTransaction.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -246,9 +355,52 @@ const transactionSlice = createSlice({
         state.isLoading = false;
         state.transactions = action.payload.transaction;
         state.error = null;
+        // Update pagination info
+        if (action.payload.pagination) {
+          state.pagination = {
+            currentPage: action.payload.pagination.currentPage,
+            totalPages: action.payload.pagination.totalPages,
+            totalCount: action.payload.pagination.totalCount,
+            hasNextPage: action.payload.pagination.hasNextPage,
+            hasPrevPage: action.payload.pagination.hasPrevPage,
+          };
+        }
+        // Update month summary (total amount for all transactions in filter)
+        if (action.payload.summary) {
+          state.monthSummary = {
+            totalAmount: action.payload.summary.totalAmount || 0,
+          };
+        }
       })
       .addCase(fetchTransaction.rejected, (state, action) => {
         state.isLoading = false;
+        state.error = action.payload as string;
+      })
+
+      // Fetch More Transactions (infinite scroll - appends transactions)
+      .addCase(fetchMoreTransactions.pending, (state) => {
+        state.isLoadingMore = true;
+        state.error = null;
+      })
+      .addCase(fetchMoreTransactions.fulfilled, (state, action) => {
+        state.isLoadingMore = false;
+        // Append new transactions to existing ones
+        const newTransactions = action.payload.transaction || [];
+        state.transactions = [...state.transactions, ...newTransactions];
+        state.error = null;
+        // Update pagination info
+        if (action.payload.pagination) {
+          state.pagination = {
+            currentPage: action.payload.pagination.currentPage,
+            totalPages: action.payload.pagination.totalPages,
+            totalCount: action.payload.pagination.totalCount,
+            hasNextPage: action.payload.pagination.hasNextPage,
+            hasPrevPage: action.payload.pagination.hasPrevPage,
+          };
+        }
+      })
+      .addCase(fetchMoreTransactions.rejected, (state, action) => {
+        state.isLoadingMore = false;
         state.error = action.payload as string;
       })
 

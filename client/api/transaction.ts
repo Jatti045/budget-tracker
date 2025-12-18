@@ -57,6 +57,8 @@ class TransactionAPI extends BaseAPI {
     startDate,
     endDate,
     budgetId,
+    page = 1,
+    limit = 10,
   }: {
     searchQuery: string;
     currentMonth: number;
@@ -64,8 +66,10 @@ class TransactionAPI extends BaseAPI {
     startDate?: string | null;
     endDate?: string | null;
     budgetId?: string | null;
+    page?: number;
+    limit?: number;
   }): Promise<ITransactionResponse<ITransaction[]>> {
-    const params: any = { searchQuery };
+    const params: any = { searchQuery, page, limit };
     if (currentMonth) params.currentMonth = currentMonth;
     if (currentYear) params.currentYear = currentYear;
     if (startDate) params.startDate = startDate;

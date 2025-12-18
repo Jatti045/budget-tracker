@@ -133,7 +133,7 @@ export const getTransactions = asyncHandler(
       const take = limitNum;
 
       // Get transactions with related data
-      const [transaction, totalCount] = await Promise.all([
+      const [transaction, totalCount, aggregateData] = await Promise.all([
         prisma.transaction.findMany({
           where,
           include: {
@@ -160,6 +160,12 @@ export const getTransactions = asyncHandler(
           take,
         }),
         prisma.transaction.count({ where }),
+        prisma.transaction.aggregate({
+          where,
+          _sum: {
+            amount: true,
+          },
+        }),
       ]);
 
       // Calculate pagination info
@@ -183,6 +189,9 @@ export const getTransactions = asyncHandler(
             hasNextPage,
             hasPrevPage,
             limit: limitNum,
+          },
+          summary: {
+            totalAmount: aggregateData._sum.amount || 0,
           },
           filters: {
             type: type || null,

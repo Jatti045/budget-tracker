@@ -14,6 +14,7 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
@@ -21,6 +22,7 @@ import { useEffect, useState } from "react";
 import {
   createTransaction,
   fetchTransaction,
+  fetchMoreTransactions,
   deleteTransaction,
   updateTransaction,
 } from "@/store/slices/transactionSlice";
@@ -31,6 +33,7 @@ import {
   useTransactions,
   useTransactionStatus,
   useCalendar,
+  useTransactionPagination,
 } from "@/hooks/useRedux";
 import { TransactionType } from "@/api/transaction";
 import Loader from "@/utils/loader";
@@ -49,9 +52,10 @@ export default function Index() {
   const { THEME } = useTheme();
   const calendar = useCalendar();
   const { showAlert } = useThemedAlert();
+  const pagination = useTransactionPagination();
 
   // Transaction loading/editing state
-  const { isAdding, isEditing } = useTransactionStatus();
+  const { isAdding, isEditing, isLoadingMore } = useTransactionStatus();
 
   // Local state
   const [openSheet, setOpenSheet] = useState(false);
@@ -257,13 +261,10 @@ export default function Index() {
     )
       txUpdates.date = date.toISOString();
 
-    console.log("txUpdates before dispatch: ", txUpdates);
-
     try {
       const response = await dispatch(
         updateTransaction({ id: editingTransaction.id, updates: txUpdates })
       );
-      console.log("Transaction update response: ", response);
 
       const { success, message } = response.payload as {
         success: boolean;
@@ -290,6 +291,52 @@ export default function Index() {
     }
   };
 
+  // Handle deleting a transaction
+  const handleDeleteTransaction = async (id: string) => {
+    showAlert({
+      title: "Delete Transaction",
+      message: "Are you sure you want to delete this transaction?",
+      buttons: [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              const response = await dispatch(deleteTransaction(id ?? ""));
+
+              const payload: any = response?.payload ?? null;
+              const success: boolean = payload?.success ?? false;
+              const message: string = payload?.message ?? "";
+
+              // Add delay to allow previous alert to fully dismiss
+              setTimeout(() => {
+                if (success) {
+                  showAlert({
+                    title: "Deleted",
+                    message: "Transaction deleted successfully.",
+                  });
+                } else {
+                  showAlert({
+                    title: "Error",
+                    message: message || "Failed to delete transaction",
+                  });
+                }
+              }, 10);
+            } catch (err: any) {
+              setTimeout(() => {
+                showAlert({
+                  title: "Error",
+                  message: err.message || "Failed to delete transaction",
+                });
+              }, 10);
+            }
+          },
+        },
+      ],
+    });
+  };
+
   // Reset form when modal closes
   const resetForm = () => {
     setName("");
@@ -300,6 +347,25 @@ export default function Index() {
     });
     setAmount("");
     setEditingTransaction(null);
+  };
+
+  // Handle loading more transactions (infinite scroll)
+  const handleLoadMore = () => {
+    // Don't load if already loading or no more pages
+    if (isLoadingMore || !pagination.hasNextPage) {
+      return;
+    }
+
+    const nextPage = pagination.currentPage + 1;
+    dispatch(
+      fetchMoreTransactions({
+        searchQuery: "",
+        currentMonth: calendar.month,
+        currentYear: calendar.year,
+        page: nextPage,
+        limit: 10,
+      })
+    );
   };
 
   const monthStartDate = new Date(calendar.year, calendar.month, 1);
@@ -359,14 +425,7 @@ export default function Index() {
           sections={sectionsWithTotals}
           keyExtractor={(item, index) => item.id ?? index.toString()}
           renderSectionHeader={({ section: { title, total } }: any) => (
-            <View
-              style={{
-                paddingVertical: 8,
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-between",
-              }}
-            >
+            <View className="py-2 flex-row justify-center items-center">
               <Text
                 style={{ color: THEME.textSecondary, flex: 1 }}
                 numberOfLines={1}
@@ -385,7 +444,7 @@ export default function Index() {
           )}
           renderItem={({ item: tx, index }) => (
             <TouchableOpacity
-              key={tx.id ?? index}
+              key={tx.id}
               style={{
                 backgroundColor: THEME.surface,
                 borderColor: THEME.border,
@@ -398,47 +457,7 @@ export default function Index() {
                 setEditingTransaction(tx);
                 setOpenSheet(true);
               }}
-              onLongPress={() => {
-                showAlert({
-                  title: "Delete Transaction",
-                  message: "Are you sure you want to delete this transaction?",
-                  buttons: [
-                    { text: "Cancel", style: "cancel" },
-                    {
-                      text: "Delete",
-                      style: "destructive",
-                      onPress: async () => {
-                        try {
-                          const response = await dispatch(
-                            deleteTransaction(tx.id ?? "")
-                          );
-                          const payload: any = response?.payload ?? null;
-                          const success: boolean = payload?.success ?? false;
-                          const message: string = payload?.message ?? "";
-                          if (success) {
-                            showAlert({
-                              title: "Deleted",
-                              message: "Transaction deleted successfully.",
-                            });
-                          } else {
-                            showAlert({
-                              title: "Error",
-                              message:
-                                message || "Failed to delete transaction",
-                            });
-                          }
-                        } catch (err: any) {
-                          showAlert({
-                            title: "Error",
-                            message:
-                              err.message || "Failed to delete transaction",
-                          });
-                        }
-                      },
-                    },
-                  ],
-                });
-              }}
+              onLongPress={() => handleDeleteTransaction(tx.id)}
             >
               <View
                 style={{ flex: 1, flexDirection: "row", alignItems: "center" }}
@@ -487,6 +506,40 @@ export default function Index() {
           )}
           contentContainerStyle={{ paddingBottom: 120, paddingTop: 8 }}
           showsVerticalScrollIndicator={false}
+          ListFooterComponent={
+            pagination.hasNextPage ? (
+              <View className="py-4 items-center">
+                {isLoadingMore ? (
+                  <>
+                    <ActivityIndicator size="small" color={THEME.secondary} />
+                    <Text style={{ color: THEME.textSecondary, marginTop: 8 }}>
+                      Loading more...
+                    </Text>
+                  </>
+                ) : (
+                  <TouchableOpacity
+                    onPress={handleLoadMore}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={{ color: THEME.textSecondary, fontSize: 12 }}>
+                      Load More Transactions
+                    </Text>
+                    <Ionicons
+                      name="chevron-down"
+                      size={18}
+                      color={THEME.background}
+                    />
+                  </TouchableOpacity>
+                )}
+              </View>
+            ) : transactions.length > 0 ? (
+              <View className="py-4 items-center">
+                <Text style={{ color: THEME.textSecondary, fontSize: 12 }}>
+                  No more transactions
+                </Text>
+              </View>
+            ) : null
+          }
         />
       )}
 

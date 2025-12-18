@@ -13,7 +13,9 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:migrate:deploy": "prisma migrate deploy",
     "prisma:studio": "prisma studio",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "seed:transactions": "ts-node scripts/seed-transactions.ts",
+    "delete:transactions": "ts-node scripts/delete-all-transactions.ts"
   },
   "keywords": [],
   "author": "",

@@ -13,6 +13,7 @@ import {
   useTransactions,
   useBudgets,
   useCalendar,
+  useTransactionMonthSummary,
 } from "@/hooks/useRedux";
 import { useThemedAlert } from "@/utils/themedAlert";
 import { useAppDispatch } from "@/store";
@@ -151,6 +152,7 @@ export default function Index() {
   const transactions = useTransactions();
   const budgets = useBudgets();
   const calendar = useCalendar();
+  const monthSummary = useTransactionMonthSummary();
   const dispatch = useAppDispatch();
   const [helpOpen, setHelpOpen] = useState(false);
   const [openTxModal, setOpenTxModal] = useState(false);
@@ -187,9 +189,8 @@ export default function Index() {
     .filter((t: any) => (t.type ?? "EXPENSE").toUpperCase() === "INCOME")
     .reduce((s: number, t: any) => s + Number(t.amount || 0), 0);
 
-  const expenseTotal = monthTx
-    .filter((t: any) => (t.type ?? "EXPENSE").toUpperCase() === "EXPENSE")
-    .reduce((s: number, t: any) => s + Number(t.amount || 0), 0);
+  // Use the total from backend summary instead of calculating from loaded transactions
+  const expenseTotal = monthSummary.totalAmount || 0;
 
   const monthlyBalance = incomeTotal - expenseTotal;
 
