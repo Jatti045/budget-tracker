@@ -1,36 +1,26 @@
-import { PrismaClient } from "@prisma/client";
+import { Prisma, PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-async function main() {
+const main = async () => {
   try {
-    console.log("🗑️  Starting to delete all transactions...");
+    console.log("Deleting all transactions...");
 
     // Count transactions before deletion
     const countBefore = await prisma.transaction.count();
-    console.log(`📊 Found ${countBefore} transactions in the database`);
+    console.log(`Transactions before deletion: ${countBefore}`);
 
     if (countBefore === 0) {
-      console.log("ℹ️  No transactions to delete.");
+      console.log("No transactions to delete.");
       return;
     }
 
-    // Ask for confirmation
-    console.log(
-      "⚠️  WARNING: This will delete ALL transactions from the database!"
-    );
-    console.log("⚠️  This action cannot be undone!");
-
     // Delete all transactions
-    const result = await prisma.transaction.deleteMany({});
+    const deletedResult = await prisma.transaction.deleteMany({});
+    console.log(`Deleted ${deletedResult.count} transactions.`);
 
-    console.log(`✅ Successfully deleted ${result.count} transactions!`);
-
-    // Reset budget spent amounts to 0
-    console.log("🔄 Resetting budget spent amounts to 0...");
-
+    // Reset budget spent amount to zero
     const budgets = await prisma.budget.findMany();
-
     for (const budget of budgets) {
       await prisma.budget.update({
         where: { id: budget.id },
@@ -38,15 +28,14 @@ async function main() {
       });
     }
 
-    console.log(`✅ Reset ${budgets.length} budgets!`);
-    console.log("🎉 All transactions deleted and budgets reset successfully!");
+    console.log("Reset spent amounts for all budgets to zero.");
+    console.log("All transactions deleted successfully.");
   } catch (error) {
-    console.error("❌ Error deleting transactions:", error);
-    throw error;
+    console.error("Error deleting transactions:", error);
   } finally {
     await prisma.$disconnect();
   }
-}
+};
 
 main().catch((e) => {
   console.error(e);

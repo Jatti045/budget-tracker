@@ -26,7 +26,6 @@ function BudgetModal({
   setLimit,
   saving,
   handleCreateBudget,
-  // optional edit-mode props
   editingBudget,
   handleUpdateBudget,
   isUpdating,

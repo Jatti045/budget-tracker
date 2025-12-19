@@ -1,4 +1,5 @@
 import { PrismaClient, TransactionType } from "@prisma/client";
+import { Console, log } from "console";
 
 const prisma = new PrismaClient();
 
@@ -46,21 +47,21 @@ const transactionNames = [
   "Parking",
 ];
 
-async function main() {
+const main = async () => {
   try {
-    console.log("🚀 Starting to seed transactions...");
+    console.log("Seeding transactions...");
 
     // Get the first user in the database
     const user = await prisma.user.findFirst();
 
     if (!user) {
       console.error(
-        "❌ No user found in database. Please create a user first."
+        "No user found in the database. Please create a user first."
       );
       return;
     }
 
-    console.log(`✅ Found user: ${user.username} (${user.email})`);
+    console.log("Found user:", user.email);
 
     // Get all budgets for this user
     const budgets = await prisma.budget.findMany({
@@ -69,20 +70,20 @@ async function main() {
 
     if (budgets.length === 0) {
       console.error(
-        "❌ No budgets found for this user. Please create budgets first."
+        "No budgets found for the user. Please create budgets first."
       );
       return;
     }
 
-    console.log(`✅ Found ${budgets.length} budgets`);
+    console.log(`Found ${budgets.length} budgets for user.`);
 
     // Generate 100 transactions
     const transactions = [];
     const now = new Date();
 
     for (let i = 0; i < 100; i++) {
-      // Random date within the last 90 days
-      const daysAgo = Math.floor(Math.random() * 90);
+      // Random date within the last 6 months
+      const daysAgo = Math.floor(Math.random() * 180);
       const transactionDate = new Date(now);
       transactionDate.setDate(transactionDate.getDate() - daysAgo);
 
@@ -93,37 +94,33 @@ async function main() {
       const randomName =
         transactionNames[Math.floor(Math.random() * transactionNames.length)];
 
-      // Random amount between $5 and $200
-      const amount = parseFloat((Math.random() * 195 + 5).toFixed(2));
+      // Random amount between $5 and $20
+      const amount = parseFloat((Math.random() * 15 + 5).toFixed(2));
 
       transactions.push({
         name: randomName,
+        amount,
         date: transactionDate,
-        category: randomCategory.name,
         type: TransactionType.EXPENSE,
-        amount: amount,
+        category: randomCategory.name,
+        budgetId: randomBudget.id,
+        userId: user.id,
         icon: randomCategory.icon,
         description: `Transaction #${i + 1}`,
-        userId: user.id,
-        budgetId: randomBudget.id,
       });
     }
 
-    // Insert all transactions
-    const created = await prisma.transaction.createMany({
+    const createdTransactions = await prisma.transaction.createMany({
       data: transactions,
     });
 
-    console.log(`✅ Successfully created ${created.count} transactions!`);
-
+    console.log("Successfully seeded transactions:", createdTransactions.count);
     // Update budget spent amounts
-    console.log("🔄 Updating budget spent amounts...");
-
+    console.log("Updating budget spent amounts...");
     for (const budget of budgets) {
       const totalSpent = await prisma.transaction.aggregate({
         where: {
           budgetId: budget.id,
-          type: TransactionType.EXPENSE,
         },
         _sum: {
           amount: true,
@@ -132,19 +129,20 @@ async function main() {
 
       await prisma.budget.update({
         where: { id: budget.id },
-        data: { spent: totalSpent._sum.amount || 0 },
+        data: {
+          spent: totalSpent._sum.amount || 0,
+        },
       });
     }
 
-    console.log("✅ Budget spent amounts updated!");
-    console.log("🎉 Seeding completed successfully!");
+    console.log("Budget spent amounts updated.");
+    console.log("Seeding completed.");
   } catch (error) {
-    console.error("❌ Error seeding transactions:", error);
-    throw error;
+    console.error("Error seeding transactions:", error);
   } finally {
     await prisma.$disconnect();
   }
-}
+};
 
 main().catch((e) => {
   console.error(e);

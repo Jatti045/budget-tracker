@@ -85,7 +85,7 @@ const TopCategoriesChart = ({ label, THEME, totals, budgets }: any) => {
       {top.length === 0 ? (
         <Text style={{ color: THEME.textSecondary }}>No categories yet</Text>
       ) : (
-        <View style={{ width: "100%" }}>
+        <View className="w-full">
           {top.map(([cat, value]: any, idx: number) => {
             const spent = Number(value || 0);
             const budgetLimit = getBudgetLimitForCategory(cat);
@@ -192,8 +192,6 @@ export default function Index() {
   // Use the total from backend summary instead of calculating from loaded transactions
   const expenseTotal = monthSummary.totalAmount || 0;
 
-  const monthlyBalance = incomeTotal - expenseTotal;
-
   // Biggest spending category
   const categoryTotals: Record<string, number> = {};
   monthTx.forEach((t: any) => {
@@ -222,6 +220,11 @@ export default function Index() {
       return false;
     }
   });
+
+  // Check if we're at the current month (to disable future navigation)
+  const now = new Date();
+  const isCurrentMonth =
+    calendar.month === now.getMonth() && calendar.year === now.getFullYear();
 
   return (
     <SafeAreaView
@@ -301,12 +304,14 @@ export default function Index() {
           </Text>
           <TouchableOpacity
             onPress={() => dispatch(nextMonth())}
-            activeOpacity={0.7}
+            activeOpacity={isCurrentMonth ? 1 : 0.7}
+            disabled={isCurrentMonth}
             style={{
               padding: 8,
               marginLeft: 12,
               backgroundColor: THEME.surface,
               borderRadius: 8,
+              opacity: isCurrentMonth ? 0.5 : 1,
             }}
           >
             <Feather name="chevron-right" size={20} color={THEME.textPrimary} />
@@ -570,7 +575,6 @@ export default function Index() {
         monthStartDate={monthStartDate}
         monthEndDate={monthEndDate}
         budgets={filteredBudgets}
-        getCategoryIcon={(category: string, color: string) => <View />}
         capitalizeFirst={(s: string) =>
           String(s).charAt(0).toUpperCase() + String(s).slice(1)
         }
@@ -687,8 +691,6 @@ export default function Index() {
             setOpenBudgetModal(false);
             setBudgetCategory("");
             setBudgetLimit("");
-            // re-fetch budgets for current month — optional
-            // dispatch(fetchBudgets({ currentMonth: currentMonth, currentYear: currentYear } as any));
           }
         }}
       />

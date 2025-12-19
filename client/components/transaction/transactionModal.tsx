@@ -35,7 +35,6 @@ function TransactionModal({
   budgets,
   handleCreateTransaction,
   capitalizeFirst,
-  // optional editing props
   editingTransaction,
   handleUpdateTransaction,
   isSaving,
