@@ -66,10 +66,19 @@ export const getTransactions = asyncHandler(
       }
 
       // Support filtering by currentMonth/currentYear
-      where.date = {
-        gte: new Date(Number(currentYear), Number(currentMonth), 1),
-        lt: new Date(Number(currentYear), Number(currentMonth) + 1, 1),
-      };
+      // Only apply date filter if both currentMonth and currentYear are valid
+      if (currentMonth !== undefined && currentYear !== undefined) {
+        const month = Number(currentMonth);
+        const year = Number(currentYear);
+        
+        // Validate that month and year are valid numbers
+        if (!isNaN(month) && !isNaN(year) && month >= 0 && month <= 11 && year > 0) {
+          where.date = {
+            gte: new Date(year, month, 1),
+            lt: new Date(year, month + 1, 1),
+          };
+        }
+      }
 
       /* if (startDate || endDate) {
         where.date = {};
@@ -154,7 +163,10 @@ export const getTransactions = asyncHandler(
         }),
         prisma.transaction.count({ where }),
         prisma.transaction.aggregate({
-          where,
+          where: {
+            ...where,
+            type: "EXPENSE", // Only sum EXPENSE transactions for the summary
+          },
           _sum: {
             amount: true,
           },
